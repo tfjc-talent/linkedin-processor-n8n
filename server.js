@@ -268,6 +268,8 @@ function processProfile(profile) {
   output.lastname = profile.lastName || '';
   output.profile_pic = profile.profilePicture || '';
   output.spotlight = profile.isOpenToWork ? "Open to work" : "" || "";
+  output.is_open_to_work = profile.isOpenToWork ?? false
+  output.is_hiring = profile.isHiring ?? false
   output.about = profile.summary || '';
   output.languages = (() => {
     // Check if profile.languages exists and is not empty
