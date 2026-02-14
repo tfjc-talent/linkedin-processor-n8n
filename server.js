@@ -9,18 +9,18 @@ const os = require('os');
 // Clustering for parallel processing
 if (cluster.isMaster && process.env.NODE_ENV === 'production') {
   const numWorkers = Math.min(4, os.cpus().length); // Max 4 workers for Railway
-  
+
   console.log(`🚀 Master process ${process.pid} starting ${numWorkers} workers`);
-  
+
   for (let i = 0; i < numWorkers; i++) {
     cluster.fork();
   }
-  
+
   cluster.on('exit', (worker, code, signal) => {
     console.log(`⚠️  Worker ${worker.process.pid} died. Restarting...`);
     cluster.fork();
   });
-  
+
   // Don't continue with Express setup in master process
   return;
 }
@@ -48,7 +48,7 @@ function processProfile(profile) {
 
   // store old url
   output.linkedin_public_identifier = profile.linkedin_public_identifier;
-  
+
   // Extract from headline
   if (profile.headline) {
     profile.headline.split(/\s+/).forEach(word => keywordsSet.add(word));
@@ -262,7 +262,7 @@ function processProfile(profile) {
     });
   }
   output.educations = educationsArray;
-  
+
   // Add the additional fields
   output.firstname = profile.firstName || '';
   output.lastname = profile.lastName || '';
@@ -301,7 +301,7 @@ function processProfile(profile) {
     // Default empty string if no languages or valid fallback found
     return "";
   })();
-  output.skills = profile.skills != null ? {skills:profile.skills.map(el => el.name),details:profile.skills} : {};
+  output.skills = profile.skills != null ? { skills: profile.skills.map(el => el.name), details: profile.skills } : {};
   output.headline = profile.headline || '';
   output.current_employment_duration = output.experiences?.[0]?.jobs?.[0]?.duration || 0;
 
@@ -313,11 +313,11 @@ function processProfile(profile) {
     output.degrees = '';
     output.schools = '';
   }
-  
+
   output.companies = output.experiences?.map(el => el.company).join(',') || '';
-  
+
   output.public_linkedin_identifier = decodeURI(profile.username) || '';
-  output.linkedin_url = decodeURI("https://linkedin.com/in/"+profile.username) || '';
+  output.linkedin_url = decodeURI("https://linkedin.com/in/" + profile.username) || '';
   output.urn = profile.urn;
 
   // Construct location field (city, region, country in one field)
@@ -339,8 +339,8 @@ function processProfile(profile) {
     }
     let month = positionDate.month;
     if (!month || month === 0) {
-      // If month is missing or 0, set it to July (mid-year)
-      month = 6; // July (zero-based)
+      // If month is missing or 0, set it to January (start of year)
+      month = 1; // January
     } else {
       month = month - 1; // Adjust to zero-based
     }
@@ -383,11 +383,11 @@ app.get('/health', (req, res) => {
 // Process profiles endpoint - EXACTLY like your n8n Code node
 app.post('/api/process-profiles', (req, res) => {
   const startTime = Date.now();
-  
+
   try {
     // Get the data - handle both single object and array formats
     let items = req.body;
-    
+
     // If it's a single object, wrap it in an array
     if (!Array.isArray(items)) {
       if (items && typeof items === 'object') {
@@ -400,11 +400,11 @@ app.post('/api/process-profiles', (req, res) => {
         });
       }
     }
-    
+
     console.log('📥 Received data type:', typeof req.body);
     console.log('📥 Is array?', Array.isArray(items));
     console.log('📥 Items count:', items.length);
-    
+
     // Validate input
     if (!Array.isArray(items)) {
       return res.status(400).json({
@@ -425,7 +425,7 @@ app.post('/api/process-profiles', (req, res) => {
     // Handle both formats: direct profiles OR n8n wrapped format
     let filteredItems;
     let profiles;
-    
+
     // Check if data is in n8n format {json: profile} or direct profile format
     if (items[0] && items[0].json) {
       // n8n format: [{json: profile}, {json: profile}]
@@ -438,7 +438,7 @@ app.post('/api/process-profiles', (req, res) => {
       profiles = filteredItems;
       console.log('🔍 Using direct format - Filtered items count:', filteredItems.length);
     }
-    
+
     const outputItems = [];
 
     // Process each profile - EXACT same logic
@@ -500,7 +500,7 @@ app.post('/api/process-profiles', (req, res) => {
 app.post('/api/test', (req, res) => {
   try {
     const testData = require('./test-data.json');
-    
+
     // Handle both formats like main endpoint
     let profiles;
     if (testData[0] && testData[0].json) {
@@ -566,7 +566,7 @@ app.listen(PORT, () => {
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`🧪 Test endpoint: http://localhost:${PORT}/api/test`);
   console.log(`⚡ Process endpoint: http://localhost:${PORT}/api/process-profiles`);
-  
+
   // Memory optimization settings
   if (global.gc) {
     console.log('✅ Garbage collection enabled');
